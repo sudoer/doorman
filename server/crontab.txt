@@ -1,0 +1,7 @@
+# m h  dom mon dow   command
+HOME=/home/user
+MAILTO='user@example.com'
+
+@reboot $HOME/cron/garage_monitor.py
+*/15 21-23 * * * $HOME/cron/garage_late.sh
+
