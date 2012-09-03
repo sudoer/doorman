@@ -1,5 +1,5 @@
 
-"doorman" - the garage door monitor
+# "doorman" - the garage door monitor
 
 This project monitors my garage door and notifies me when it opens or
 closes, or when it has been open late at night.  It is made up of two
@@ -14,6 +14,12 @@ This project contains:
  - the python scripts and settings files
  - hardware schematics on how to hook up the sensors
  - some pictures
+
+## License
+
+CC0 Public Domain - http://creativecommons.org/publicdomain/zero/1.0/
+
+## A message from the author
 
 This has been a very fun project, and it is useful as well.  I hope you
 enjoy it.  If you have questions or comments, please contact me.
