@@ -194,14 +194,17 @@ def background(list):
    log_info("background command = "+(" ".join(list)))
    list.insert(0,sys.executable)
    p = subprocess.Popen(list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+   log_info("")
    return p
 
 #-----------------------------------------------------------
 
 def shell(list):
    global g_logFD
+   log_info("shell command = "+(" ".join(list)))
    rc = subprocess.call(list, stdout=g_logFD, stderr=g_logFD)
-   log_info("shell command = "+(" ".join(list))+" (rc = "+("%d"%rc)+")")
+   log_info("shell rc = "+("%d"%rc))
+   log_info("")
    return rc
 
 #-----------------------------------------------------------
