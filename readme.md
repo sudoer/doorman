@@ -24,7 +24,7 @@ leave a computer on all the time, just to watch his door.
 
 So we came up with a second version of the project that combines the
 two pieces together on a Raspberry Pi... a much more self-contained
-solution.  The only things it needs are power and wifi.
+solution.  The only external things it needs are power and wifi.
 
 This project contains:
  - the Python script that monitors the door and sends alerts
