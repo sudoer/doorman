@@ -1,2 +1,3 @@
-server/garage_settings.py
-
+old/server/garage_settings.py
+raspi/settings.cfg
+raspi/start.log
