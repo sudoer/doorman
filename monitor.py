@@ -8,7 +8,7 @@ import datetime
 import ConfigParser
 
 # Adafruit LCD plate I2C library
-sys.path.append('/root/garage/adafruit')
+sys.path.append('/root/garage/Adafruit-Raspberry-Pi-Python-Code/Adafruit_CharLCDPlate')
 from Adafruit_CharLCDPlate import Adafruit_CharLCDPlate
 
 # Prowl notification library

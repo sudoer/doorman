@@ -1,0 +1,8 @@
+#!/bin/bash
+mkdir -p /tmp/garage
+log="/tmp/garage/start"
+date > $log
+cd /root/garage/doorman
+pkill -fx "/usr/bin/python ./monitor.py"
+./monitor.py >> $log 2>&1 &
+
