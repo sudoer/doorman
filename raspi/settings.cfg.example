@@ -1,0 +1,14 @@
+
+[hardware]
+TEST_BUTTON = SELECT
+DOOR_BUTTON = RIGHT
+
+[paths]
+LOG_FILE = /tmp/garage/log
+STATUS_FILE = /tmp/garage/info
+TRIGGER_FILE = /tmp/garage/late
+
+[prowl]
+API_KEY = 111222333444555666777888999aaabbbcccddde
+APPLICATION = garage pi
+
