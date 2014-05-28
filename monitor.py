@@ -83,6 +83,7 @@ def log_debug(string):
 def notify(event,description):
     global preferences
     global g_ledOverrideCounter
+
     log_info('PROWL >> '+event+' | '+description)
     p = prowlpy.Prowl(preferences.prowl_api_key)
     try:
@@ -128,7 +129,10 @@ def monitor():
         somethingChanged = False
 
         # read door switch
-        doorIsOpen = g_lcd.buttonPressed(preferences.DOOR_BUTTON) or g_lcd.buttonPressed(preferences.TEST_BUTTON)
+        door = g_lcd.buttonPressed(preferences.DOOR_BUTTON)
+        norm = preferences.DOOR_NORMALLY_OPEN
+        test = g_lcd.buttonPressed(preferences.TEST_BUTTON)
+        doorIsOpen = ( ( door == norm ) or test )
 
         # did door change?
         if doorIsOpen != doorWasOpen:
@@ -250,6 +254,7 @@ config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
 preferences.DOOR_BUTTON = BUTTON_MAP[config.get('hardware', 'DOOR_BUTTON')]
 preferences.TEST_BUTTON = BUTTON_MAP[config.get('hardware', 'TEST_BUTTON')]
+preferences.DOOR_NORMALLY_OPEN = config.get('hardware', 'DOOR_NORMALLY_OPEN')
 preferences.prowl_api_key = config.get('prowl', 'API_KEY')
 preferences.prowl_app = config.get('prowl', 'APPLICATION')
 

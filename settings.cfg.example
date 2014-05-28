@@ -2,6 +2,7 @@
 [hardware]
 TEST_BUTTON = SELECT
 DOOR_BUTTON = RIGHT
+DOOR_NORMALLY_OPEN = True
 
 [paths]
 LOG_FILE = /tmp/garage/log
