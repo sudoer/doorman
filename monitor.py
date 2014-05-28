@@ -130,7 +130,7 @@ def monitor():
 
         # read door switch
         door = g_lcd.buttonPressed(preferences.DOOR_BUTTON)
-        norm = preferences.DOOR_NORMALLY_OPEN
+        norm = preferences.DOOR_OPEN_VALUE
         test = g_lcd.buttonPressed(preferences.TEST_BUTTON)
         doorIsOpen = ( ( door == norm ) or test )
 
@@ -254,7 +254,7 @@ config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
 preferences.DOOR_BUTTON = BUTTON_MAP[config.get('hardware', 'DOOR_BUTTON')]
 preferences.TEST_BUTTON = BUTTON_MAP[config.get('hardware', 'TEST_BUTTON')]
-preferences.DOOR_NORMALLY_OPEN = config.get('hardware', 'DOOR_NORMALLY_OPEN')
+preferences.DOOR_OPEN_VALUE = True if int(config.get('hardware', 'DOOR_OPEN_VALUE')) > 0 else False
 preferences.prowl_api_key = config.get('prowl', 'API_KEY')
 preferences.prowl_app = config.get('prowl', 'APPLICATION')
 
