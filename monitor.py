@@ -6,6 +6,7 @@ import sys
 import subprocess
 import datetime
 import ConfigParser
+import traceback
 
 # Adafruit LCD plate I2C library
 sys.path.append('/root/garage/Adafruit-Raspberry-Pi-Python-Code/Adafruit_CharLCDPlate')
@@ -56,27 +57,34 @@ class Preferences(object):
             'statusFile':       ( 'paths',    'STATUS_FILE',     'get',        '/tmp/garage/info' ),
             'lateTriggerFile':  ( 'triggers', 'LATE_FILE',       'get',        '/tmp/garage/trigger.late' ),
             'longTriggerFile':  ( 'triggers', 'LONG_FILE',       'get',        '/tmp/garage/trigger.long' ),
-            'longTime':         ( 'triggers', 'LONG_TIME',       'getinteger', 3600 ),
+            'longTime':         ( 'triggers', 'LONG_TIME',       'getint',     3600 ),
             'prowlApiKey':      ( 'prowl',    'API_KEY',         'get',        None ),
             'prowlApp':         ( 'prowl',    'APPLICATION',     'get',        None ),
-            'fromEmail':        ( 'email',    'FROM_ADDRESS',    'get',        None ),
-            'toEmail':          ( 'email',    'TO_ADDRESS',      'get',        None ),
+            #'fromEmail':        ( 'email',    'FROM_ADDRESS',    'get',        None ),
+            #'toEmail':          ( 'email',    'TO_ADDRESS',      'get',        None ),
         }
         self.valHash = { }
-        # self._config = ConfigParser.RawConfigParser()
         config = ConfigParser.ConfigParser()
         config.read('settings.cfg')
         for key in self.prefHash:
             section, option, getter, default = self.prefHash[key]
+            print('section=['+section+'] option=['+option+'] getter=['+getter+'] , default=['+str(default)+']')
             try:
-                self.valHash[key] = getter(self, option)
+                # call config.<getter>( section, option )
+                gotten = apply( getattr(config, getter), (section, option) )
+                self.valHash[key] = gotten
+                print('setting from file: '+key+'=>['+str(gotten)+']')
             except:
                 self.valHash[key] = default
+                print('taking default: '+key+'=>['+str(default)+']')
+                print "because:", sys.exc_info()[0]
+                var = traceback.format_exc()
+                print 'traceback:'
+                print var
+            print ""
 
     def get(self,key):
         return self.valHash[key]
-
-preferences = Preferences()
 
 #-----------------------------------------------------------
 #  PLUMBING
@@ -291,10 +299,7 @@ def monitor():
 #START
 
 # defaults
-
-# TODO - can I just read this as a big tree and traverse it later?
-config = ConfigParser.RawConfigParser()
-config.read('settings.cfg')
+preferences = Preferences()
 
 # log file
 tmpdir = os.path.dirname(preferences.get('logFile'))
