@@ -7,9 +7,12 @@ DOOR_NORMALLY_OPEN = 1
 [paths]
 LOG_FILE = /tmp/garage/log
 STATUS_FILE = /tmp/garage/info
-TRIGGER_FILE = /tmp/garage/late
+LATE_TRIGGER = /tmp/garage/trigger.late
+LONG_TRIGGER = /tmp/garage/trigger.long
+LONG_THRESHOLD = 60m
 
 [prowl]
 API_KEY = 111222333444555666777888999aaabbbcccddde
 APPLICATION = garage pi
+
 

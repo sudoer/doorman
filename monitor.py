@@ -20,9 +20,6 @@ g_lcd = Adafruit_CharLCDPlate()
 g_logFD = None
 g_ledOverrideCounter = 0
 
-class preferences:
-    pass
-
 # CONSTANTS
 YESTERYEAR = datetime.datetime(1999, 12, 31)
 
@@ -42,6 +39,44 @@ BUTTON_MAP = {
     'LEFT':   g_lcd.LEFT,
     'RIGHT':  g_lcd.RIGHT,
 }
+
+#-----------------------------------------------------------
+#  PREFERENCES
+#-----------------------------------------------------------
+
+class Preferences(object):
+
+    def __init__(self):
+        self.prefHash = {
+            # PREFERENCE           SECTION     OPTION             GETTER        DEFAULT
+            'doorButton':       ( 'hardware', 'DOOR_BUTTON',     'get',        'SELECT' ),
+            'testButton':       ( 'hardware', 'TEST_BUTTON',     'get',        'RIGHT' ),
+            'doorOpenValue':    ( 'hardware', 'DOOR_OPEN_VALUE', 'getboolean', False ),
+            'logFile':          ( 'paths',    'LOG_FILE',        'get',        '/tmp/garage/log' ),
+            'statusFile':       ( 'paths',    'STATUS_FILE',     'get',        '/tmp/garage/info' ),
+            'lateTriggerFile':  ( 'triggers', 'LATE_FILE',       'get',        '/tmp/garage/trigger.late' ),
+            'longTriggerFile':  ( 'triggers', 'LONG_FILE',       'get',        '/tmp/garage/trigger.long' ),
+            'longTime':         ( 'triggers', 'LONG_TIME',       'getinteger', 3600 ),
+            'prowlApiKey':      ( 'prowl',    'API_KEY',         'get',        None ),
+            'prowlApp':         ( 'prowl',    'APPLICATION',     'get',        None ),
+            'fromEmail':        ( 'email',    'FROM_ADDRESS',    'get',        None ),
+            'toEmail':          ( 'email',    'TO_ADDRESS',      'get',        None ),
+        }
+        self.valHash = { }
+        # self._config = ConfigParser.RawConfigParser()
+        config = ConfigParser.ConfigParser()
+        config.read('settings.cfg')
+        for key in self.prefHash:
+            section, option, getter, default = self.prefHash[key]
+            try:
+                self.valHash[key] = getter(self, option)
+            except:
+                self.valHash[key] = default
+
+    def get(self,key):
+        return self.valHash[key]
+
+preferences = Preferences()
 
 #-----------------------------------------------------------
 #  PLUMBING
@@ -69,11 +104,12 @@ def log_info(string):
 
 def log_debug(string):
     global g_logFD
-    #timeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    #g_logFD.write(timeStamp+" "+string+"\n")
-    #g_logFD.flush()
-    #os.fsync(g_logFD)
     pass
+    return # early
+    timeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    g_logFD.write(timeStamp+" "+string+"\n")
+    g_logFD.flush()
+    os.fsync(g_logFD)
 
 #-----------------------------------------------------------
 #  NOTIFICATONS
@@ -85,9 +121,11 @@ def notify(event,description):
     global g_ledOverrideCounter
 
     log_info('PROWL >> '+event+' | '+description)
-    p = prowlpy.Prowl(preferences.prowl_api_key)
+    p = prowlpy.Prowl(preferences.get('prowlApiKey'))
+    if p == None:
+        return
     try:
-        p.post(application=preferences.prowl_app,
+        p.post(application=preferences.get('prowlApp'),
             event=event,
             description=description,
             priority=0,
@@ -129,9 +167,12 @@ def monitor():
         somethingChanged = False
 
         # read door switch
-        door = g_lcd.buttonPressed(preferences.DOOR_BUTTON)
-        norm = preferences.DOOR_OPEN_VALUE
-        test = g_lcd.buttonPressed(preferences.TEST_BUTTON)
+        doorButton = BUTTON_MAP[preferences.get('doorButton')]
+        testButton = BUTTON_MAP[preferences.get('testButton')]
+
+        norm = preferences.get('doorOpenValue')
+        door = g_lcd.buttonPressed(doorButton)
+        test = g_lcd.buttonPressed(testButton)
         doorIsOpen = ( ( door == norm ) or test )
 
         # did door change?
@@ -177,7 +218,7 @@ def monitor():
         if timeNow-statusTime > datetime.timedelta(seconds=PERIOD_STATUS) or somethingChanged:
             statusTime = timeNow
             # Write the status to a temp file.
-            tmpFile = preferences.statusfile+".tmp"
+            tmpFile = preferences.get('statusFile')+".tmp"
             fd = open(tmpFile,'w+')
             fd.write("TIME="+timeNow.strftime('%Y-%m-%d %H:%M:%S')+"\n")
             fd.write("DOOR="+("OPEN" if doorIsOpen else "CLOSED")+"\n")
@@ -185,7 +226,7 @@ def monitor():
             fd.close()
             log_debug("writing status file (D="+("1" if doorIsOpen else "0")+")")
             # atomic replacement
-            os.rename(tmpFile,preferences.statusfile)
+            os.rename(tmpFile,preferences.get('statusFile'))
 
         # Log the door state every so often.
         if timeNow-logTime > datetime.timedelta(seconds=PERIOD_LOG):
@@ -193,7 +234,7 @@ def monitor():
             log_info("door="+("OPEN" if doorIsOpen else "CLOSED"))
 
         # Cron job will drop a file here, telling us to warn if door is still open.
-        if os.path.exists(preferences.triggerfile):
+        if os.path.exists(preferences.get('lateTriggerFile')):
             if doorIsOpen:
                 log_info("it's late -- door is open")
                 event = 'garage door open late'
@@ -201,7 +242,7 @@ def monitor():
                 notify(event, description)
             else:
                 log_info("it's late -- door is closed -- good")
-            os.remove(preferences.triggerfile)
+            os.remove(preferences.get('lateTriggerFile'))
 
         # LED BACKLIGHT
 
@@ -249,31 +290,25 @@ def monitor():
 
 #START
 
+# defaults
+
 # TODO - can I just read this as a big tree and traverse it later?
 config = ConfigParser.RawConfigParser()
 config.read('settings.cfg')
-preferences.DOOR_BUTTON = BUTTON_MAP[config.get('hardware', 'DOOR_BUTTON')]
-preferences.TEST_BUTTON = BUTTON_MAP[config.get('hardware', 'TEST_BUTTON')]
-preferences.DOOR_OPEN_VALUE = True if int(config.get('hardware', 'DOOR_OPEN_VALUE')) > 0 else False
-preferences.prowl_api_key = config.get('prowl', 'API_KEY')
-preferences.prowl_app = config.get('prowl', 'APPLICATION')
 
 # log file
-preferences.logfile = config.get('paths', 'LOG_FILE')
-tmpdir = os.path.dirname(preferences.logfile)
+tmpdir = os.path.dirname(preferences.get('logFile'))
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir)
-g_logFD = open(preferences.logfile,'a')
+g_logFD = open(preferences.get('logFile'),'a')
 
 # status file
-preferences.statusfile = config.get('paths', 'STATUS_FILE')
-tmpdir = os.path.dirname(preferences.statusfile)
+tmpdir = os.path.dirname(preferences.get('statusFile'))
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir)
 
 # trigger file
-preferences.triggerfile = config.get('paths', 'TRIGGER_FILE')
-tmpdir = os.path.dirname(preferences.triggerfile)
+tmpdir = os.path.dirname(preferences.get('lateTriggerFile'))
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir)
 
