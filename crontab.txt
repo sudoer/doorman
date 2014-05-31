@@ -1,5 +1,6 @@
 
 @reboot /root/garage/doorman/start.sh
-0,30 22,23 * * * date > /tmp/garage/late
+0    6-21  * * * date > /tmp/garage/trigger.long
+0,30 22,23 * * * date > /tmp/garage/trigger.late
 
 
