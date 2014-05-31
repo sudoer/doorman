@@ -104,7 +104,7 @@ def shell_capture(cmdargs) :
 def log_info(string):
     global g_logFD
     timeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    g_logFD.write(timeStamp+" "+string+"\n")
+    g_logFD.write(timeStamp+" INFO "+string+"\n")
     g_logFD.flush()
     os.fsync(g_logFD)
 
@@ -113,11 +113,20 @@ def log_info(string):
 def log_debug(string):
     global g_logFD
     pass
-    return # early
+    return
     timeStamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    g_logFD.write(timeStamp+" "+string+"\n")
+    g_logFD.write(timeStamp+" DEBUG "+string+"\n")
     g_logFD.flush()
     os.fsync(g_logFD)
+
+#-----------------------------------------------------------
+
+def sec2dhms(s) :
+    days = s // 86400  ; s = s - (days * 86400)
+    hours = s // 3600  ; s = s - (hours * 3600)
+    mins = s // 60     ; s = s - (mins * 60)
+    secs = s
+    return (days, hours, mins, secs)
 
 #-----------------------------------------------------------
 #  NOTIFICATONS
@@ -241,7 +250,7 @@ def monitor():
             logTime = timeNow
             log_info("door="+("OPEN" if doorIsOpen else "CLOSED"))
 
-        # Cron job will drop a file here, telling us to warn if door is still open.
+        # Cron job will drop a file here, telling us to warn if door is still open late.
         if os.path.exists(preferences.get('lateTriggerFile')):
             if doorIsOpen:
                 log_info("it's late -- door is open")
@@ -251,6 +260,22 @@ def monitor():
             else:
                 log_info("it's late -- door is closed -- good")
             os.remove(preferences.get('lateTriggerFile'))
+
+        # Cron job will drop a file here, telling us to warn if door has been open a long time.
+        if os.path.exists(preferences.get('longTriggerFile')):
+            doorOpenDelta = timeNow-doorDateTime
+            doorOpenSeconds = int(doorOpenDelta.total_seconds())
+            (d,h,m,s) = sec2dhms( doorOpenSeconds )
+            longTime = preferences.get('longTime')
+            log_debug('checking for long time (%ds) - door has been open for %dh:%02dm:%02ds'%(longTime,h,m,s))
+            if doorIsOpen and doorOpenSeconds > longTime:
+                log_info('door has been open for '+('%dh:%02dm:%02ds'%(h,m,s)))
+                event = 'garage door still open'
+                description = "It's "+timeNow.strftime('%I:%M%p')+' and the garage door has been open for '+('%dh:%02dm'%(h,m))
+                notify(event, description)
+            else:
+                log_info("door is closed, or has not been open too long -- good")
+            os.remove(preferences.get('longTriggerFile'))
 
         # LED BACKLIGHT
 
@@ -312,8 +337,11 @@ tmpdir = os.path.dirname(preferences.get('statusFile'))
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir)
 
-# trigger file
+# trigger files
 tmpdir = os.path.dirname(preferences.get('lateTriggerFile'))
+if not os.path.exists(tmpdir):
+    os.makedirs(tmpdir)
+tmpdir = os.path.dirname(preferences.get('longTriggerFile'))
 if not os.path.exists(tmpdir):
     os.makedirs(tmpdir)
 
@@ -334,6 +362,9 @@ while True:
         break
     except:
         print "Unexpected error:", sys.exc_info()[0]
+        var = traceback.format_exc()
+        print 'traceback:'
+        print var
     time.sleep(10)
 
 #END

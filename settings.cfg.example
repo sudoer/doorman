@@ -1,18 +1,22 @@
-
 [hardware]
-TEST_BUTTON = SELECT
-DOOR_BUTTON = RIGHT
-DOOR_NORMALLY_OPEN = 1
-
-[paths]
-LOG_FILE = /tmp/garage/log
-STATUS_FILE = /tmp/garage/info
-LATE_TRIGGER = /tmp/garage/trigger.late
-LONG_TRIGGER = /tmp/garage/trigger.long
-LONG_THRESHOLD = 60m
+DOOR_BUTTON = SELECT
+TEST_BUTTON = RIGHT
+DOOR_OPEN_VALUE = false
 
 [prowl]
 API_KEY = 111222333444555666777888999aaabbbcccddde
 APPLICATION = garage pi
 
+[paths]
+LOG_FILE = /tmp/garage/log
+STATUS_FILE = /tmp/garage/info
+
+[triggers]
+LATE_FILE = /tmp/garage/trigger.late
+LONG_FILE = /tmp/garage/trigger.long
+LONG_TIME = 3600
+
+# [email]
+# TO_ADDRESS = 
+# FROM_ADDRESS = 
 
