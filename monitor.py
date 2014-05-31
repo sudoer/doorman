@@ -78,9 +78,8 @@ class Preferences(object):
                 self.valHash[key] = default
                 print('taking default: '+key+'=>['+str(default)+']')
                 print "because:", sys.exc_info()[0]
-                var = traceback.format_exc()
                 print 'traceback:'
-                print var
+                print traceback.format_exc()
             print ""
 
     def get(self,key):
@@ -362,9 +361,8 @@ while True:
         break
     except:
         print "Unexpected error:", sys.exc_info()[0]
-        var = traceback.format_exc()
         print 'traceback:'
-        print var
+        print traceback.format_exc()
     time.sleep(10)
 
 #END
