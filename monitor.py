@@ -188,8 +188,11 @@ def monitor():
 
         norm = preferences.get('doorOpenValue')
         door = g_lcd.buttonPressed(doorButton)
+        doorIsOpen = ( door == norm )
+
+        # if the TEST button is pressed, reverse the reading
         test = g_lcd.buttonPressed(testButton)
-        doorIsOpen = ( ( door == norm ) or test )
+        doorIsOpen = ( doorIsOpen != test )  # XOR
 
         # did door change?
         if doorIsOpen != doorWasOpen:
